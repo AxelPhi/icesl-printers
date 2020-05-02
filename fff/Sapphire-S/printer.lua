@@ -1,14 +1,15 @@
 -- Sapphire-S
 
-function comment(text)
-  output('; ' .. text)
-end
-
 current_fan_speed = -1
 current_frate = -1
 current_z = -1
 extruder_e = 0
 extruder_e_restart = 0
+reset_e_on_next_prime = false
+
+function comment(text)
+  output('; ' .. text)
+end
 
 function header()
   h = file('header.gcode')
@@ -33,47 +34,39 @@ function layer_stop()
 end
 
 function retract(extruder,e)
-  len   = filament_priming_mm[extruder]
-  speed = priming_mm_per_sec[extruder] * 60;
-  letter = 'E'
-  output('G1 F' .. speed .. ' ' .. letter .. ff(e - len - extruder_e_restart))
-  extruder_e = e - len
-  return e - len
+  extruder_e = e
+  output('G10')
+  return e
 end
 
 function prime(extruder,e)
-  len   = filament_priming_mm[extruder]
-  speed = priming_mm_per_sec[extruder] * 60;
-  letter = 'E'
-  output('G1 F' .. speed .. ' ' .. letter .. ff(e + len - extruder_e_restart))
-  extruder_e = e + len
-  return e + len
+  extruder_e = e
+  output('G11')
+  return e
 end
 
 function move_xyz(x,y,z)
   if (z == current_z) then
     output('G1 X' .. f(x) .. ' Y' .. f(y) )
   else
-    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' Z' .. f(z+z_offset))
+    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' Z' .. f(z))
     current_z = z
   end  
 end
 
 function move_xyze(x,y,z,e)
   extruder_e = e
-  letter = 'E'
-  if (z == current_z = 0) then
-    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' ' .. letter .. ff(e - extruder_e_restart))
+  if (z == current_z) then
+    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' E' .. ff(e - extruder_e_restart))
   else
-    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' Z' .. f(z+z_offset) .. ' ' .. letter .. ff(e - extruder_e_restart))
-    current_z = 0 = z
+    output('G1 X' .. f(x) .. ' Y' .. f(y) .. ' Z' .. f(z) .. ' E' .. ff(e - extruder_e_restart))
+    current_z = z
   end
 end
 
 function move_e(e)
   extruder_e = e
-  letter = 'E'
-  output('G1 ' .. letter .. ff(e - extruder_e_restart))
+  output('G1 E' .. ff(e - extruder_e_restart))
 end
 
 function set_feedrate(feedrate)
@@ -84,11 +77,11 @@ function set_feedrate(feedrate)
 end
 
 function set_extruder_temperature(extruder,temperature)
-  output('M104 S' .. temperature .. ' T' .. extruder)
+  output('M104 S' .. f(temperature) .. ' T' .. extruder)
 end
 
 function set_and_wait_extruder_temperature(extruder,temperature)
-  output('M109 S' .. temperature .. ' T' .. extruder)
+  output('M109 S' .. f(temperature) .. ' T' .. extruder)
 end
 
 function set_fan_speed(speed)

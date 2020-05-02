@@ -1,8 +1,11 @@
-G92 E0
-M107       ; fan off
-M104 S0    ; turn off temperature
-M140 S0
+;<footer>
+M300 P500  ; Beep 
+G91                   ; Incremental coordinates
+G1 Z5.0 F9000         ; Move up 5mm
+G90                   ; Absolute cooridinates
+M104 S0               ; Turn off extruder
+M140 S0               ; Turn off bed
 M107
-G1 X0 Y0   ; move back X and Y to origin
-G1 Y200	   ; move Y to front to "present" the print 
-M84        ; disable motors
+G28 X Y               ; Park at X Y Home position. Keep Z.
+M84                   ; Disable motors
+;</footer>
